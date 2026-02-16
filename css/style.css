@@ -1,0 +1,16 @@
+/* ============================================
+   Quantilus Innovation — Theme Switcher
+   ============================================
+
+   Switch themes by uncommenting ONE line below:
+
+   - "theme-lovefrom.css"  → Editorial, serif, monochrome (LoveFrom-inspired)
+   - "theme-original.css"  → Vibrant, gradient, modern tech
+
+   ============================================ */
+
+/* Active theme ↓ */
+@import url('theme-lovefrom.css');
+
+/* Alternative theme (uncomment to switch, comment the other) ↓ */
+/* @import url('theme-original.css'); */

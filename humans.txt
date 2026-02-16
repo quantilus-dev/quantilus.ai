@@ -1,0 +1,22 @@
+/* TEAM */
+
+Company: Quantilus Innovation Inc.
+Site: https://quantilus.com
+Location: New York, NY, USA
+Founded: 2004
+
+Founder & CEO: Debarshi Chaudhury
+Chief Technologist: Matthew Xu
+Head of Business Development & Sales: John Jeltema
+Senior Project Manager: John Giltinan
+
+/* SITE */
+
+Standards: HTML5, CSS3, Vanilla JavaScript
+Components: Semantic HTML, CSS Grid, Flexbox, Intersection Observer
+Software: Hand-coded, zero dependencies
+Hosting: Cloudflare Pages
+
+/* THANKS */
+
+Fonts: Inter by Rasmus Andersson (Google Fonts)

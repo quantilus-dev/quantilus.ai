@@ -1,0 +1,21 @@
+{
+  "name": "Quantilus Innovation",
+  "short_name": "Quantilus",
+  "description": "AI-driven innovation company building agent-operated systems for enterprises.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0E0320",
+  "theme_color": "#58327D",
+  "icons": [
+    {
+      "src": "images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

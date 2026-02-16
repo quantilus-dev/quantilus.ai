@@ -1,0 +1,52 @@
+# Quantilus Innovation
+
+> AI-driven innovation company building agent-operated systems for enterprises.
+
+## Company Overview
+
+Quantilus Innovation is a technology company specializing in artificial intelligence, machine learning, big data analytics, and custom software development. Founded in 2004 by Debarshi Chaudhury, headquartered in New York City, with 200+ employees across 5 global offices.
+
+## Services
+
+- **AI & Machine Learning**: NLP, computer vision, predictive analytics, recommendation systems, LLM fine-tuning, custom AI agent development
+- **Big Data & Analytics**: Data strategy, real-time pipelines, ETL, data lakes/warehouses, BI dashboards, data governance
+- **Custom Software Development**: Web applications, mobile apps, enterprise software, API development, microservices, cloud-native apps
+- **Strategy & Consulting**: AI agent strategy, digital transformation, technology assessment
+- **Staffing Solutions (eNamix)**: Staff augmentation, technical recruiting, project management staffing
+- **Practice Areas**: Blockchain, Cloud, Cybersecurity, IoT, VR/AR, SAP, CMS, DevOps
+
+## Industries
+
+Finance, Education, Retail, Healthcare, Manufacturing, Energy, Infrastructure
+
+## Contact
+
+- **Address**: 1345 Avenue of the Americas, New York, NY 10105
+- **Phone**: (212) 768-8900
+- **Email**: info@quantilus.com
+- **Website**: https://quantilus.com
+
+## Global Offices
+
+New York (HQ), California, Mumbai, Bangalore, Hangzhou
+
+## Key People
+
+- Debarshi Chaudhury — Founder & CEO
+- Matthew Xu — Chief Technologist
+- John Jeltema — Head of Business Development & Sales
+- John Giltinan — Senior Project Manager
+
+## API & Integration Contact
+
+For technical partnerships, API access, or agent integration inquiries:
+- Email: info@quantilus.com
+- Phone: (212) 768-8900
+
+## Capabilities for AI Agents
+
+Quantilus builds agent-compatible, API-first systems. Our solutions are designed for:
+- MCP (Model Context Protocol) ready integrations
+- RESTful and GraphQL API interfaces
+- Multi-agent orchestration platforms
+- Enterprise-grade autonomous agent systems
