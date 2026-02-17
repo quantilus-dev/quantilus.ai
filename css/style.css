@@ -10,7 +10,7 @@
    ============================================ */
 
 /* Active theme ↓ */
-@import url('theme-lovefrom.css');
+/* @import url('theme-lovefrom.css'); */
 
 /* Alternative theme (uncomment to switch, comment the other) ↓ */
-/* @import url('theme-original.css'); */
+@import url('theme-original.css');

@@ -1,195 +1,204 @@
-# Deploying to Cloudflare Pages — Step by Step
+# Deploying quantilus.ai — Step by Step
 
-## Prerequisites
+## Your Setup
 
-- A **Cloudflare account** (free tier works) — sign up at [dash.cloudflare.com](https://dash.cloudflare.com)
-- Your domain `quantilus.com` (optional — Cloudflare gives you a free `*.pages.dev` subdomain)
-
----
-
-## Option A: Direct Upload (Easiest — No Git Required)
-
-This is the fastest way. No GitHub, no CLI, just drag and drop.
-
-### Step 1: Log into Cloudflare Dashboard
-
-1. Go to [dash.cloudflare.com](https://dash.cloudflare.com)
-2. Log in to your account
-
-### Step 2: Navigate to Pages
-
-1. In the left sidebar, click **"Workers & Pages"**
-2. Click the **"Pages"** tab
-3. Click **"Create application"**
-4. Select **"Pages"** tab, then click **"Upload assets"**
-
-### Step 3: Create Your Project
-
-1. Enter a project name: `quantilus` (this gives you `quantilus.pages.dev`)
-2. Click **"Create project"**
-
-### Step 4: Upload Your Files
-
-1. Click **"Upload"** or **drag and drop** the entire `quantilus_website` folder
-2. Make sure all files are listed (index.html, about.html, css/, js/, etc.)
-3. Click **"Deploy site"**
-
-### Step 5: Done!
-
-- Your site is live at `https://quantilus.pages.dev`
-- Cloudflare gives you a unique deploy URL for each deployment
-- Takes about 30 seconds to propagate globally
+- **Domain**: `quantilus.ai` on AWS Route 53
+- **Infrastructure**: S3, CloudFront, Route 53
+- **Site type**: Static HTML/CSS/JS — no build step needed
 
 ---
 
-## Option B: Git Integration (Recommended for Ongoing Updates)
+## AWS Deployment (S3 + CloudFront + Route 53)
 
-Connect a GitHub/GitLab repo so every push auto-deploys.
+### Step 1: Create an S3 Bucket
 
-### Step 1: Push Code to GitHub
+1. Go to **AWS Console → S3 → Create bucket**
+2. Bucket name: **`quantilus.ai`** (must match your domain name)
+3. Region: **US East (N. Virginia) `us-east-1`** (required for CloudFront + ACM)
+4. **Uncheck** "Block all public access" — check the acknowledgment box
+5. Leave everything else as default
+6. Click **Create bucket**
 
-```bash
-cd quantilus_website
-git init
-git add -A
-git commit -m "Initial Quantilus website"
-git remote add origin https://github.com/YOUR_USERNAME/quantilus-website.git
-git branch -M main
-git push -u origin main
+### Step 2: Enable Static Website Hosting on S3
+
+1. Go to your **`quantilus.ai`** bucket → **Properties** tab
+2. Scroll to **Static website hosting** → click **Edit**
+3. Select **Enable**
+4. Index document: **`index.html`**
+5. Error document: **`index.html`** (for SPA-like behavior)
+6. Click **Save changes**
+7. Note the **Bucket website endpoint** URL (you'll need it later) — it looks like:
+   `http://quantilus.ai.s3-website-us-east-1.amazonaws.com`
+
+### Step 3: Set S3 Bucket Policy (Allow Public Read)
+
+1. Go to your bucket → **Permissions** tab → **Bucket policy** → **Edit**
+2. Paste this policy (replace the bucket name if different):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::quantilus.ai/*"
+    }
+  ]
+}
 ```
 
-### Step 2: Connect Repo in Cloudflare
+3. Click **Save changes**
 
-1. Go to **Cloudflare Dashboard → Workers & Pages → Pages**
-2. Click **"Create application"** → **"Connect to Git"**
-3. Select **GitHub** and authorize Cloudflare
-4. Choose the `quantilus-website` repository
+### Step 4: Upload Your Files to S3
 
-### Step 3: Configure Build Settings
+**Option A — AWS Console (drag and drop):**
 
-Since this is a static site with no build step:
+1. Go to your bucket → **Objects** tab → **Upload**
+2. Drag the contents of the `quantilus_website/` folder (NOT the folder itself — the files inside it)
+3. Make sure you see: `index.html`, `about.html`, `css/`, `js/`, `images/`, etc. at the root
+4. Click **Upload**
 
-| Setting | Value |
-|---|---|
-| **Production branch** | `main` |
-| **Build command** | *(leave empty)* |
-| **Build output directory** | `/` |
-| **Root directory** | `/` |
+**Option B — AWS CLI (faster for updates):**
 
-5. Click **"Save and Deploy"**
+```bash
+# Install AWS CLI if needed, then configure
+aws configure
 
-### Step 4: Done!
+# Sync all files to S3
+aws s3 sync ./quantilus_website s3://quantilus.ai --delete
 
-- Site deploys automatically on every `git push`
-- Preview URLs are generated for every branch/PR
-- Live at `https://quantilus.pages.dev`
+# Set correct content types for common files
+aws s3 cp s3://quantilus.ai/ s3://quantilus.ai/ --recursive --exclude "*" --include "*.html" --content-type "text/html" --metadata-directive REPLACE
+aws s3 cp s3://quantilus.ai/ s3://quantilus.ai/ --recursive --exclude "*" --include "*.css" --content-type "text/css" --metadata-directive REPLACE
+aws s3 cp s3://quantilus.ai/ s3://quantilus.ai/ --recursive --exclude "*" --include "*.js" --content-type "application/javascript" --metadata-directive REPLACE
+aws s3 cp s3://quantilus.ai/ s3://quantilus.ai/ --recursive --exclude "*" --include "*.xml" --content-type "application/xml" --metadata-directive REPLACE
+aws s3 cp s3://quantilus.ai/ s3://quantilus.ai/ --recursive --exclude "*" --include "*.json" --content-type "application/json" --metadata-directive REPLACE
+```
+
+### Step 5: Request an SSL Certificate (ACM)
+
+1. Go to **AWS Console → Certificate Manager (ACM)**
+2. **IMPORTANT**: Make sure you're in **US East (N. Virginia) `us-east-1`** region (top-right dropdown)
+3. Click **Request a certificate** → **Request a public certificate**
+4. Domain names:
+   - `quantilus.ai`
+   - `*.quantilus.ai` (wildcard — covers `www.quantilus.ai` too)
+5. Validation method: **DNS validation**
+6. Click **Request**
+7. On the certificate details page, click **Create records in Route 53**
+   - AWS will automatically add the CNAME validation records to your Route 53 hosted zone
+8. Wait for status to change to **Issued** (usually 5–15 minutes)
+
+### Step 6: Create a CloudFront Distribution
+
+1. Go to **AWS Console → CloudFront → Create distribution**
+2. **Origin settings:**
+   - Origin domain: **DO NOT select the S3 bucket from the dropdown**. Instead, paste your S3 website endpoint:
+     `quantilus.ai.s3-website-us-east-1.amazonaws.com`
+   - Protocol: **HTTP only** (S3 website endpoints don't support HTTPS)
+3. **Default cache behavior:**
+   - Viewer protocol policy: **Redirect HTTP to HTTPS**
+   - Allowed HTTP methods: **GET, HEAD**
+   - Cache policy: **CachingOptimized** (or create custom)
+   - Compress objects automatically: **Yes**
+4. **Settings:**
+   - Price class: **Use all edge locations** (or choose based on budget)
+   - Alternate domain names (CNAMEs): Add both:
+     - `quantilus.ai`
+     - `www.quantilus.ai`
+   - Custom SSL certificate: Select the **ACM certificate** you created in Step 5
+   - Default root object: **`index.html`**
+5. Click **Create distribution**
+6. Wait for status to change from "Deploying" to **Enabled** (takes 5–15 minutes)
+7. Note the **Distribution domain name** (e.g., `d1234abcdef.cloudfront.net`)
+
+### Step 7: Configure Route 53 DNS
+
+1. Go to **AWS Console → Route 53 → Hosted zones → quantilus.ai**
+2. Create an **A record** for the root domain:
+   - Record name: *(leave empty for root)*
+   - Record type: **A**
+   - Toggle **Alias**: **Yes**
+   - Route traffic to: **Alias to CloudFront distribution**
+   - Choose distribution: Select your CloudFront distribution
+   - Click **Create records**
+3. Create an **A record** for www:
+   - Record name: **www**
+   - Record type: **A**
+   - Toggle **Alias**: **Yes**
+   - Route traffic to: **Alias to CloudFront distribution**
+   - Choose distribution: Select your CloudFront distribution
+   - Click **Create records**
+
+### Step 8: Done!
+
+Your site is now live at **https://quantilus.ai**
 
 ---
 
-## Option C: Wrangler CLI (For Developers)
+## Setting Up www → root Redirect (Optional)
 
-Deploy from your terminal using Cloudflare's CLI tool.
+To redirect `www.quantilus.ai` → `quantilus.ai`:
 
-### Step 1: Install Wrangler
+1. Create another S3 bucket named **`www.quantilus.ai`**
+2. Go to **Properties → Static website hosting → Enable**
+3. Select **Redirect requests for an object**
+4. Target bucket: `quantilus.ai`
+5. Protocol: `https`
 
-```bash
-npm install -g wrangler
-```
-
-### Step 2: Authenticate
-
-```bash
-wrangler login
-```
-
-This opens a browser window to authorize.
-
-### Step 3: Deploy
-
-```bash
-cd quantilus_website
-wrangler pages deploy . --project-name=quantilus
-```
-
-### Step 4: Done!
-
-- Deploys in seconds
-- Returns a live URL immediately
-- Run the same command for every update
-
----
-
-## Connecting Your Custom Domain (`quantilus.com`)
-
-After deploying with any method above:
-
-### Step 1: Add Custom Domain
-
-1. Go to **Workers & Pages → your project → Custom domains**
-2. Click **"Set up a custom domain"**
-3. Enter `quantilus.com`
-4. Click **"Activate domain"**
-
-### Step 2: Update DNS (if domain is already on Cloudflare)
-
-- Cloudflare automatically adds the required CNAME record
-- SSL certificate is provisioned automatically (free)
-- No configuration needed
-
-### Step 3: Update DNS (if domain is elsewhere)
-
-Add a CNAME record at your domain registrar:
-
-| Type | Name | Target |
-|---|---|---|
-| CNAME | `@` | `quantilus.pages.dev` |
-| CNAME | `www` | `quantilus.pages.dev` |
-
-- SSL is handled automatically by Cloudflare
-- Propagation takes up to 24 hours (usually minutes)
-
-### Step 4: Add `www` redirect (optional)
-
-1. In Custom domains, also add `www.quantilus.com`
-2. Cloudflare handles the redirect automatically
-
----
-
-## Post-Deploy Checklist
-
-- [ ] Site loads at your Pages URL (`quantilus.pages.dev`)
-- [ ] All pages render correctly (click through every nav link)
-- [ ] Mobile navigation works (resize browser or test on phone)
-- [ ] Contact form shows success message on submit
-- [ ] Custom domain connected and SSL active (green padlock)
-- [ ] Test with [Google PageSpeed Insights](https://pagespeed.web.dev/)
-- [ ] Test with [Google Rich Results Test](https://search.google.com/test/rich-results) for structured data
-- [ ] Submit sitemap to Google Search Console (`https://quantilus.com/sitemap.xml`)
+Or simply point both `quantilus.ai` and `www.quantilus.ai` to the same CloudFront distribution (already done in Step 7).
 
 ---
 
 ## Updating the Site
 
-| Method | How to Update |
-|---|---|
-| **Direct Upload** | Go to Pages → your project → click "Create new deployment" → upload files again |
-| **Git Integration** | Just `git push` — auto-deploys in ~30 seconds |
-| **Wrangler CLI** | Run `wrangler pages deploy .` again |
+After making changes locally:
+
+**AWS CLI (recommended):**
+
+```bash
+# Sync files to S3
+aws s3 sync . s3://quantilus.ai --delete
+
+# Invalidate CloudFront cache so changes appear immediately
+aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths "/*"
+```
+
+**AWS Console:**
+
+1. Go to S3 bucket → upload new/changed files
+2. Go to CloudFront → your distribution → **Invalidations** → **Create invalidation**
+3. Enter `/*` to invalidate all cached files
+4. Wait ~1 minute for global propagation
 
 ---
 
-## Cost
+## Post-Deploy Checklist
 
-**Free.** Cloudflare Pages free tier includes:
+- [ ] `https://quantilus.ai` loads correctly
+- [ ] `https://www.quantilus.ai` loads (or redirects to root)
+- [ ] All 8 pages render and navigation works
+- [ ] HTTPS padlock is green (SSL working)
+- [ ] Mobile navigation works
+- [ ] Contact form shows success message
+- [ ] Test with [Google PageSpeed Insights](https://pagespeed.web.dev/)
+- [ ] Test with [Google Rich Results Test](https://search.google.com/test/rich-results)
+- [ ] Submit sitemap: `https://quantilus.ai/sitemap.xml` to Google Search Console
 
-- 500 deploys per month
-- Unlimited bandwidth
-- Unlimited requests
-- Global CDN (300+ edge locations)
-- Free SSL
-- Free `*.pages.dev` subdomain
+---
 
-No credit card required.
+## Cost Estimate
+
+| Service | Monthly Cost |
+|---|---|
+| **S3** | ~$0.01–0.05 (storage + requests for a small static site) |
+| **CloudFront** | Free tier: 1TB transfer + 10M requests/month. After: ~$0.085/GB |
+| **Route 53** | $0.50/hosted zone + $0.40/1M queries |
+| **ACM (SSL)** | Free |
+| **Total** | **~$1–2/month** for a low-traffic static site |
 
 ---
 
@@ -205,4 +214,4 @@ In `contact.html`, update the form action with your real Formspree endpoint:
 <form action="https://formspree.io/f/xABcdEfG" ...>
 ```
 
-This enables the contact form to actually send emails. Formspree free tier allows 50 submissions/month.
+Formspree free tier allows 50 submissions/month.

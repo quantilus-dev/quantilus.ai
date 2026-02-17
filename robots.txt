@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://quantilus.com/sitemap.xml
+Sitemap: https://quantilus.ai/sitemap.xml

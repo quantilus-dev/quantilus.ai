@@ -1,7 +1,7 @@
 /* TEAM */
 
 Company: Quantilus Innovation Inc.
-Site: https://quantilus.com
+Site: https://quantilus.ai
 Location: New York, NY, USA
 Founded: 2004
 
